@@ -122,14 +122,18 @@ public class SystemTestUtil {
                 Debug.log("\t" + Utility.listToString(t));
             }
         }
-
+        System.out.println(copy);
+        System.out.println(tuples);
+        System.out.println();
         iterator.open();
         while (iterator.hasNext()) {
             Tuple t = iterator.next();
             List<Integer> list = tupleToList(t);
+            System.out.print(list+", ");
             boolean isExpected = copy.remove(list);
             Debug.log("scanned tuple: %s (%s)", t, isExpected ? "expected" : "not expected");
             if (!isExpected) {
+                System.out.println("a");
                 Assert.fail("expected tuples does not contain: " + t);
             }
         }
