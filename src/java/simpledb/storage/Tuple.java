@@ -1,7 +1,11 @@
 package simpledb.storage;
 
+import simpledb.common.Type;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -12,6 +16,9 @@ import java.util.Iterator;
 public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private TupleDesc td;
+    private  HashMap<Integer,Field> fields;
+    private RecordId recordId ;
 
     /**
      * Create a new tuple with the specified schema (type).
@@ -22,6 +29,9 @@ public class Tuple implements Serializable {
      */
     public Tuple(TupleDesc td) {
         // some code goes here
+        fields = new HashMap<>();
+        this.td=td;
+        this.recordId = null;
     }
 
     /**
@@ -29,7 +39,7 @@ public class Tuple implements Serializable {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return this.td;
     }
 
     /**
@@ -38,7 +48,7 @@ public class Tuple implements Serializable {
      */
     public RecordId getRecordId() {
         // some code goes here
-        return null;
+        return this.recordId;
     }
 
     /**
@@ -49,6 +59,7 @@ public class Tuple implements Serializable {
      */
     public void setRecordId(RecordId rid) {
         // some code goes here
+        this.recordId = rid;
     }
 
     /**
@@ -61,6 +72,8 @@ public class Tuple implements Serializable {
      */
     public void setField(int i, Field f) {
         // some code goes here
+        fields.put(i,f);
+
     }
 
     /**
@@ -71,7 +84,9 @@ public class Tuple implements Serializable {
      */
     public Field getField(int i) {
         // some code goes here
-        return null;
+
+        return fields.get(i);
+
     }
 
     /**
@@ -103,5 +118,8 @@ public class Tuple implements Serializable {
     public void resetTupleDesc(TupleDesc td)
     {
         // some code goes here
+        this.td = td;
+        fields = new HashMap<>();
+        this.recordId = null;
     }
 }
