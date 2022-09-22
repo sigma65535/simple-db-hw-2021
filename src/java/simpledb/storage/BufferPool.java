@@ -1,9 +1,6 @@
 package simpledb.storage;
 
-import simpledb.common.Database;
-import simpledb.common.Permissions;
-import simpledb.common.DbException;
-import simpledb.common.DeadlockException;
+import simpledb.common.*;
 import simpledb.transaction.TransactionAbortedException;
 import simpledb.transaction.TransactionId;
 
@@ -79,8 +76,20 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
+        synchronized (tid) {
+            try {
+                return Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+            } catch (Exception e) {
+                try {
+                    numPages++;
+                    flushPage(pid);
+                    return new HeapPage(new HeapPageId(pid.getTableId(),pid.getPageNumber()),null);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
 
-        return null;
+            }
+        }
     }
 
     /**
