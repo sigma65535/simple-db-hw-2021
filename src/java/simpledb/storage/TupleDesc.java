@@ -48,8 +48,8 @@ public class TupleDesc implements Serializable {
     }
 
 
-    ArrayList<String> fieldNames = null;
-    ArrayList<Type> fieldTypes = null;
+    ArrayList<String> fieldNames = new ArrayList<>();
+    ArrayList<Type> fieldTypes = new ArrayList<>();
 
 
     ArrayList<TDItem> tdList = null;
@@ -73,6 +73,9 @@ public class TupleDesc implements Serializable {
         tdList = new ArrayList<TDItem>();
         for (int i = 0; i < typeAr.length; i++) {
             tdList.add(new TDItem(typeAr[i], fieldAr[i]));
+            this.fieldNames.add(fieldAr[i]);
+            this.fieldTypes.add(typeAr[i]);
+
         }
     }
 
