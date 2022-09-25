@@ -122,9 +122,7 @@ public class SystemTestUtil {
                 Debug.log("\t" + Utility.listToString(t));
             }
         }
-        System.out.println(copy);
-        System.out.println(tuples);
-        System.out.println();
+
         iterator.open();
         while (iterator.hasNext()) {
             Tuple t = iterator.next();

@@ -3,10 +3,7 @@ package simpledb.storage;
 import simpledb.common.Type;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Tuple maintains information about the contents of a tuple. Tuples have a
@@ -99,7 +96,13 @@ public class Tuple implements Serializable {
      */
     public String toString() {
         // some code goes here
-        throw new UnsupportedOperationException("Implement this");
+        StringBuilder curString = new StringBuilder();
+        for (Map.Entry < Integer, Field > entry: fields.entrySet()) {
+            curString.append(entry.getValue().toString());
+            curString.append("\t");
+        }
+
+        return curString.toString();
     }
 
     /**
@@ -109,7 +112,7 @@ public class Tuple implements Serializable {
     public Iterator<Field> fields()
     {
         // some code goes here
-        return null;
+        return this.fields.values().iterator();
     }
 
     /**

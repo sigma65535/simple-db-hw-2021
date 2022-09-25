@@ -32,7 +32,10 @@ public class BufferPool {
 
 
 
-    private int numPages;
+    private final int numPages;
+
+    private final ConcurrentHashMap<Integer,Page> pageStore;
+
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -42,6 +45,8 @@ public class BufferPool {
     public BufferPool(int numPages) {
         // some code goes here
         this.numPages = numPages;
+        pageStore = new ConcurrentHashMap<Integer,Page>();
+
     }
     
     public static int getPageSize() {
@@ -57,6 +62,9 @@ public class BufferPool {
     public static void resetPageSize() {
     	BufferPool.pageSize = DEFAULT_PAGE_SIZE;
     }
+
+
+
 
     /**
      * Retrieve the specified page with the associated permissions.
@@ -76,20 +84,13 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-        synchronized (tid) {
-            try {
-                return Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
-            } catch (Exception e) {
-                try {
-                    numPages++;
-                    flushPage(pid);
-                    return new HeapPage(new HeapPageId(pid.getTableId(),pid.getPageNumber()),null);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-
-            }
+        if(!pageStore.containsKey(pid.hashCode())){
+            DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+            Page page = dbfile.readPage(pid);
+            pageStore.put(pid.hashCode(),page);
         }
+        return pageStore.get(pid.hashCode());
+
     }
 
     /**

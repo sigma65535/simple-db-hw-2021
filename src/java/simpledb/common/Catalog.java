@@ -27,16 +27,16 @@ public class Catalog {
      */
     public Catalog() {
         // some code goes here
-        this.data = new HashMap<>();
+        this.tables = new HashMap<>();
         this.tableInfo = new HashMap<>();
     }
 
-    private static class CataItem {
+    private static class Table {
         String name;
         String pkeyField;
         DbFile file;
 
-        public CataItem(String name, String pkeyField, DbFile file) {
+        public Table(String name, String pkeyField, DbFile file) {
             this.name = name;
             this.pkeyField = pkeyField;
             this.file = file;
@@ -44,7 +44,7 @@ public class Catalog {
     }
 
 
-    private HashMap<Integer,CataItem> data;
+    private HashMap<Integer, Table> tables;
     private HashMap<String,Integer> tableInfo;
 
     /**
@@ -59,7 +59,7 @@ public class Catalog {
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
         int tableID =  file.getId();
-        this.data.put(tableID,new CataItem(name,pkeyField,file));
+        this.tables.put(tableID,new Table(name,pkeyField,file));
         this.tableInfo.put(name,tableID);
     }
 
@@ -99,7 +99,7 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
-        return data.get(tableid).file.getTupleDesc();
+        return tables.get(tableid).file.getTupleDesc();
     }
 
     /**
@@ -110,28 +110,28 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return data.get(tableid).file;
+        return tables.get(tableid).file;
     }
 
     public String getPrimaryKey(int tableid) {
         // some code goes here
-        return  data.get(tableid).pkeyField;
+        return  tables.get(tableid).pkeyField;
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+        return this.tables.keySet().iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
-        return data.get(id).name;
+        return tables.get(id).name;
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
-        this.data = new HashMap<>();
+        this.tables = new HashMap<>();
         this.tableInfo = new HashMap<>();
     }
     

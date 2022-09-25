@@ -44,7 +44,7 @@ public class TupleDesc implements Serializable {
      * */
     public Iterator<TDItem> iterator() {
         // some code goes here
-        return null;
+        return this.tdList.iterator();
     }
 
 
@@ -235,6 +235,10 @@ public class TupleDesc implements Serializable {
      */
     public String toString() {
         // some code goes here
-        return "";
+        StringBuilder curString = new StringBuilder();
+        for (int i = 0; i < this.numFields(); i++) {
+            curString.append(this.getFieldType(i)).append("(").append(this.getFieldName(i)).append(")");
+        }
+        return curString.toString();
     }
 }
