@@ -1,7 +1,11 @@
 package simpledb.execution;
 
+import simpledb.common.DbException;
 import simpledb.common.Type;
-import simpledb.storage.Tuple;
+import simpledb.storage.*;
+import simpledb.transaction.TransactionAbortedException;
+
+import java.util.*;
 
 /**
  * Knows how to compute some aggregate over a set of IntFields.
@@ -9,6 +13,12 @@ import simpledb.storage.Tuple;
 public class IntegerAggregator implements Aggregator {
 
     private static final long serialVersionUID = 1L;
+
+    private int gbfield;
+    private Type gbfieldtype;
+    private int afield;
+    private Op what;
+    private HashMap<Integer,Integer> count;
 
     /**
      * Aggregate constructor
@@ -24,9 +34,18 @@ public class IntegerAggregator implements Aggregator {
      * @param what
      *            the aggregation operator
      */
+    private HashMap<Integer,Tuple> tupData;
 
+    private HashMap<Integer,Integer> valueMap;
     public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
         // some code goes here
+        this.afield = afield;
+        this.gbfield = gbfield;
+        this.gbfieldtype = gbfieldtype;
+        this.what = what;
+        this.valueMap = new HashMap<>();
+        this.tupData = new HashMap<>();
+        this.count = new HashMap<>();
     }
 
     /**
@@ -37,7 +56,29 @@ public class IntegerAggregator implements Aggregator {
      *            the Tuple containing an aggregate field and a group-by field
      */
     public void mergeTupleIntoGroup(Tuple tup) {
-        // some code goes here
+        int gbVal = ((IntField)tup.getField(this.gbfield)).getValue();
+        if (this.gbfield == NO_GROUPING) {
+            this.gbfieldtype = null;
+            gbVal = NO_GROUPING;
+        }
+        int cnt = this.count.getOrDefault(gbVal,0);
+        int aggVal = ((IntField)tup.getField(this.afield)).getValue();
+        int newAggVal= 0;
+        switch (this.what){
+            case SUM : newAggVal = this.valueMap.getOrDefault(gbVal,0)+aggVal;break;
+            case MIN : newAggVal = Math.min(this.valueMap.getOrDefault(gbVal,Integer.MAX_VALUE),aggVal) ;break;
+            case MAX : newAggVal = Math.max(this.valueMap.getOrDefault(gbVal,Integer.MIN_VALUE),aggVal) ;break;
+            case AVG :newAggVal = (this.valueMap.getOrDefault(gbVal,0)*cnt+aggVal)/(cnt+1);break;
+        }
+
+        this.valueMap.put(gbVal,newAggVal);
+        TupleDesc td = tup.getTupleDesc();
+        Tuple newTup = new Tuple(td);
+        newTup.setField(this.gbfield, new IntField(gbVal));
+        newTup.setField(this.afield, new IntField(newAggVal));
+        this.tupData.put(gbVal,newTup);
+        this.count.put(gbVal,cnt+1);
+
     }
 
     /**
@@ -50,8 +91,52 @@ public class IntegerAggregator implements Aggregator {
      */
     public OpIterator iterator() {
         // some code goes here
-        throw new
-        UnsupportedOperationException("please implement me for lab2");
+        return new IntegerAggregatorOpIterator(tupData) ;
     }
 
+}
+
+class IntegerAggregatorOpIterator implements OpIterator {
+
+    private HashMap<Integer,Tuple> tupData;
+    private Iterator<Tuple> iterator;
+    public IntegerAggregatorOpIterator(HashMap<Integer,Tuple> data) {
+        this.tupData = data;
+    }
+
+    @Override
+    public void open() throws DbException, TransactionAbortedException {
+
+        iterator = this.tupData.values().iterator();
+    }
+
+    @Override
+    public boolean hasNext() throws DbException, TransactionAbortedException {
+        return iterator.hasNext();
+    }
+
+    @Override
+    public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
+        if (this.iterator.hasNext()){
+            return this.iterator.next();
+        }
+
+        throw  new NoSuchElementException();
+    }
+
+    @Override
+    public void rewind() throws DbException, TransactionAbortedException {
+        close();
+        open();
+    }
+
+    @Override
+    public TupleDesc getTupleDesc() {
+        return null;
+    }
+
+    @Override
+    public void close() {
+        this.iterator = null;
+    }
 }
