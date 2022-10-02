@@ -70,6 +70,8 @@ public class Tuple implements Serializable {
     public void setField(int i, Field f) {
         // some code goes here
         fields.put(i,f);
+        this.td.tdList.remove(i);
+        this.td.tdList.add(i,new TupleDesc.TDItem(f.getType(),f.toString()));
 
     }
 
