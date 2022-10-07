@@ -19,6 +19,7 @@ public class IntegerAggregator implements Aggregator {
     private int afield;
     private Op what;
     private HashMap<Integer,Integer> count;
+    private HashMap<Integer,ArrayList<Integer>> historyData;
 
     /**
      * Aggregate constructor
@@ -46,6 +47,7 @@ public class IntegerAggregator implements Aggregator {
         this.valueMap = new HashMap<>();
         this.tupData = new HashMap<>();
         this.count = new HashMap<>();
+        this.historyData = new HashMap<>();
     }
 
     /**
@@ -56,28 +58,50 @@ public class IntegerAggregator implements Aggregator {
      *            the Tuple containing an aggregate field and a group-by field
      */
     public void mergeTupleIntoGroup(Tuple tup) {
-        int gbVal = ((IntField)tup.getField(this.gbfield)).getValue();
+        int gbVal = NO_GROUPING;
+        int gbfield = this.gbfield;
         if (this.gbfield == NO_GROUPING) {
             this.gbfieldtype = null;
-            gbVal = NO_GROUPING;
+        }else {
+            gbVal = ((IntField)tup.getField(gbfield)).getValue();
         }
+
         int cnt = this.count.getOrDefault(gbVal,0);
         int aggVal = ((IntField)tup.getField(this.afield)).getValue();
         int newAggVal= 0;
+
+        ArrayList<Integer> list = this.historyData.getOrDefault(gbVal,new ArrayList<>());
+        list.add(aggVal);
+        this.historyData.put(gbVal,list);
+
+
         switch (this.what){
             case SUM : newAggVal = this.valueMap.getOrDefault(gbVal,0)+aggVal;break;
             case MIN : newAggVal = Math.min(this.valueMap.getOrDefault(gbVal,Integer.MAX_VALUE),aggVal) ;break;
             case MAX : newAggVal = Math.max(this.valueMap.getOrDefault(gbVal,Integer.MIN_VALUE),aggVal) ;break;
-            case AVG :newAggVal = (this.valueMap.getOrDefault(gbVal,0)*cnt+aggVal)/(cnt+1);break;
+            case AVG :
+
+                for (Integer item :list) {
+                    newAggVal+= item;
+                }
+                newAggVal = newAggVal/list.size();
+                break;
+            case COUNT:newAggVal = list.size();break;
         }
 
         this.valueMap.put(gbVal,newAggVal);
         TupleDesc td = tup.getTupleDesc();
         Tuple newTup = new Tuple(td);
-        newTup.setField(this.gbfield, new IntField(gbVal));
-        newTup.setField(this.afield, new IntField(newAggVal));
+        if (gbfield == NO_GROUPING) {
+            newTup.setField(0, new IntField(newAggVal));
+        }else  {
+            newTup.setField(gbfield, new IntField(gbVal));
+            newTup.setField(this.afield, new IntField(newAggVal));
+        }
+
         this.tupData.put(gbVal,newTup);
         this.count.put(gbVal,cnt+1);
+
 
     }
 
